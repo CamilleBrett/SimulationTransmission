@@ -1,5 +1,5 @@
-from CRC import crc, crc_encoding
 from copy import deepcopy
+from .CRC import crc, crc_encoding
 from .sequence import generate_random_sequence
 
 class Wire:
@@ -92,7 +92,6 @@ def viterbi(message):
 
     #Comparing weights
     for p in paths:
-        p.print_path()
         if p.weight <= min_weight:
             min_weight = p.weight
             best_path = p

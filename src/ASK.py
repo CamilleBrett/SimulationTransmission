@@ -5,7 +5,7 @@ from .CRC import crc_encoding
 from .sequence import generate_random_sequence
 
 def TRMS(signal):
-    return ([signal[i]**2 for i in range(len(signal))])/len(signal)
+    return sum([signal[i]**2 for i in range(len(signal))])/len(signal)
 
 def ask_modulate(message, nb_symboles, f_porteuse, f_symboles, f_ech):
     #f_porteuse = 100.0 #Hz
@@ -34,23 +34,28 @@ def ask_modulate(message, nb_symboles, f_porteuse, f_symboles, f_ech):
 
     return porteuse, modulant, signal_module
 
-def ask_demodulate(noisy_signal, nb_symboles, f_symboles, f_ech):
+def ask_demodulate(noisy_signal, nb_symboles, nb_ech_per_symbole):
     """
     Pour la decision on va etudier la TRMS du signal bruite sur un intervalle de temps t_symboles
     """
-    received_encoded_message = []
+    received_amplitude = []
+    received_message = []
     for i in range(nb_symboles):
-        symb_amplitude = np.sqrt(2)*TRMS(noisy_signal[i*f_ech/f_symboles, (i+1)*f_ech/f_symboles])
-        if symb_amplitude < 1.5:
-            received_encoded_message.append([0, 0])
-        elif symb_amplitude < 2.5:
-            received_encoded_message.append([0, 1])
-        elif symb_amplitude < 3.5
-            received_encoded_message.append([1, 0])
+        symb_amplitude = 2*TRMS(noisy_signal[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole])
+        if symb_amplitude <= 1.5**2:
+            received_message.append([0, 0])
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [1 for i in range(nb_ech_per_symbole)]
+        elif symb_amplitude <= 2.5**2:
+            received_message.append([0, 1])
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [2 for i in range(nb_ech_per_symbole)]
+        elif symb_amplitude <= 3.5**2:
+            received_message.append([1, 0])
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [3 for i in range(nb_ech_per_symbole)]
         else :
-            received_encoded_message.append([1, 1])
+            received_message.append([1, 1])
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [4 for i in range(nb_ech_per_symbole)]
     
-    return received_encoded_message
+    return received_message, received_amplitude
 
 
 
