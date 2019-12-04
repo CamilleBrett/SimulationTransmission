@@ -1,3 +1,10 @@
-def bruit_gaussien(y, intensite):
-    bruit = (np.random.normal(0, 1, len(y)) - 0.5) * intensite
-    return np.array(y) + bruit
+import numpy as np
+
+def gaussian_noise(nb_points, sigma):
+    noise = np.random.normal(0, sigma, nb_points)
+    return noise
+
+def awgn(signal, sigma):
+    noise = gaussian_noise(len(signal), sigma)
+    return noise, (signal + noise)
+
