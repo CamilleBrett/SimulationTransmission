@@ -33,9 +33,9 @@ message = generate_random_sequence(nb_symboles)
 #Codage du message pour le rendre resistant au canal
 encoded_message = crc_encoding(message)
 
- #Modulation du message: on passe sur un signal physique
-porteuse, modulant, signal_module = ask_modulate(encoded_message, nb_symboles, f_porteuse, f_symboles, f_ech)
-
+#Modulation du message: on passe sur un signal physique
+porteuse, modulant, signal_module = ask_modulate(
+    encoded_message, nb_symboles, f_porteuse, f_symboles, f_ech)
 
 
 #Calcul de l'energie par bits
@@ -48,7 +48,8 @@ sigma = np.sqrt(N0/2)
 noise, noisy_signal = awgn(signal_module, sigma)
 
 #On demodule le signal
-received_message, received_amplitude = ask_demodulate(noisy_signal, nb_symboles, nb_ech_per_symbole)
+received_message, received_amplitude = ask_demodulate(
+    noisy_signal, nb_symboles, nb_ech_per_symbole)
 
 #On decode le message
 decoded_message = viterbi(received_message)
@@ -59,7 +60,8 @@ TEB = nb_errors/nb_symboles
 
 #On affiche des informations dans la console
 print("Taille du message envoyé : ", nb_symboles, "bits")
-print("Fréquence porteuse : ", f_porteuse, "Hz; ", "Fréquence d'échantillonnage : ", f_ech, "Hz; ", "Fréquence d'émission symbole : ", f_symboles, "Hz; ")
+print("Fréquence porteuse : ", f_porteuse, "Hz; ", "Fréquence d'échantillonnage : ",
+      f_ech, "Hz; ", "Fréquence d'émission symbole : ", f_symboles, "Hz; ")
 print("Nombre d'erreurs :", nb_errors)
 print("Taux d'erreur binaire pour RSB =", gammadB, "dB : ", TEB)
 
@@ -67,11 +69,14 @@ message_print = []
 decoded_message_print = []
 
 for i in range(nb_symboles):
-    message_print[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [message[i] for j in range(nb_ech_per_symbole)]
-    decoded_message_print[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [decoded_message[i] for j in range(nb_ech_per_symbole)]
+    message_print[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [message[i]
+                                                                    for j in range(nb_ech_per_symbole)]
+    decoded_message_print[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
+        decoded_message[i] for j in range(nb_ech_per_symbole)]
 
 #Figures : porteuse, message encode, signal module
-"""
+
+plt.figure("SNR = " + str(gammadB) + "dB; " + "TEB = " + str(TEB))
 plt.subplot(3,2,1)
 plt.plot(time_fech, message_print)
 plt.xlabel("Temps (s)")
@@ -110,4 +115,4 @@ plt.title("Information reçue (décodée)")
 
 plt.tight_layout()
 plt.show()
-"""
+
