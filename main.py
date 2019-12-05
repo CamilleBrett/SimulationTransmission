@@ -16,7 +16,7 @@ f_ech = 8*f_porteuse
 gammadB = 15
 
 #Nombre de bits dans le message transmis
-nb_symboles = 200
+nb_symboles = 50
 
 #Nombre de points d'echantillonnage
 nb_points = int(nb_symboles*f_ech/f_symboles)
@@ -54,15 +54,18 @@ received_message, received_amplitude = ask_demodulate(
 #On decode le message
 decoded_message = viterbi(received_message)
 
-#On calcule le nombre d'erreurs et le TEB
+#On calcule le nombre d'erreurs et le TEB et le TES
 nb_errors = sum([message[i] != decoded_message[i] for i in range(nb_symboles)])
+nb_errors_symb = sum([encoded_message[i] != received_message[i] for i in range(nb_symboles)])
 TEB = nb_errors/nb_symboles
+TES = nb_errors_symb/nb_symboles
 
 #On affiche des informations dans la console
 print("Taille du message envoyé : ", nb_symboles, "bits")
 print("Fréquence porteuse : ", f_porteuse, "Hz; ", "Fréquence d'échantillonnage : ",
       f_ech, "Hz; ", "Fréquence d'émission symbole : ", f_symboles, "Hz; ")
 print("Nombre d'erreurs :", nb_errors)
+print("Taux d'erreur symbole pour RSB =", gammadB, "dB : ", TES)
 print("Taux d'erreur binaire pour RSB =", gammadB, "dB : ", TEB)
 
 message_print = []
