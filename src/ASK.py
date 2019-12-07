@@ -11,7 +11,8 @@ def sq_TRMS(signal):
 
 
 def ask_modulate(message, nb_symboles, f_porteuse, f_symboles, f_ech):
-    """Modulation de l'information sur une porteuse de frequence f_porteuse, modulation a 4 etats
+    """
+    Modulation de l'information sur une porteuse de frequence f_porteuse, modulation a 4 etats
     A l'etat 0 on associe une amplitude 1
     A l'etat 1 on associe une amplitude 2
     A l'etat 2 on associe une amplitude 3
@@ -74,7 +75,7 @@ def ask_demodulate(noisy_signal, nb_symboles, nb_ech_per_symbole):
 
 
 def main():
-    """test pour voir si tout fonctionne"""
+    """Test pour voir si tout fonctionne"""
     message = generate_random_sequence(20)
     encoded_message = crc_encoding(message)
     porteuse, modulant, signal_module = ask_modulate(encoded_message)
