@@ -4,9 +4,11 @@ import matplotlib.pyplot as plt
 from .CRC import crc_encoding
 from .sequence import generate_random_sequence
 
+
 def sq_TRMS(signal):
     """Calcule le carre de la valeur efficace d'un signal"""
     return sum([signal[i]**2 for i in range(len(signal))])/len(signal)
+
 
 def ask_modulate(message, nb_symboles, f_porteuse, f_symboles, f_ech):
     """Modulation de l'information sur une porteuse de frequence f_porteuse, modulation a 4 etats
@@ -17,19 +19,20 @@ def ask_modulate(message, nb_symboles, f_porteuse, f_symboles, f_ech):
     On renvoie le signal module echantillonne a une frequence f_ech
     """
     time_fech = np.arange(0, nb_symboles/f_symboles, 1/f_ech)
-    porteuse = np.sin(2*np.pi*f_porteuse*time_fech) #on cree notre signal porteuse
+    # on cree notre signal porteuse
+    porteuse = np.sin(2*np.pi*f_porteuse*time_fech)
     modulant = np.zeros(int(nb_symboles/f_symboles*f_ech))
     for i in range(len(message)):
-        if message[i] == [0, 0]: #etat 0
+        if message[i] == [0, 0]:  # etat 0
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 1.
-        elif message[i] == [0, 1]: #etat 1
+        elif message[i] == [0, 1]:  # etat 1
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 2.
-        elif message[i] == [1, 0]: #etat 2
+        elif message[i] == [1, 0]:  # etat 2
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 3.
-        elif message[i] == [1, 1]: #etat 3
+        elif message[i] == [1, 1]:  # etat 3
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 4.
     signal_module = [porteuse[i] * modulant[i] for i in range(len(porteuse))]
@@ -47,22 +50,27 @@ def ask_demodulate(noisy_signal, nb_symboles, nb_ech_per_symbole):
     received_amplitude = []
     received_message = []
     for i in range(nb_symboles):
-        symb_amplitude = 2*sq_TRMS(noisy_signal[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole])
+        symb_amplitude = 2 * \
+            sq_TRMS(
+                noisy_signal[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole])
         if symb_amplitude <= 1.5**2:
             received_message.append([0, 0])
-            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [1 for i in range(nb_ech_per_symbole)]
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
+                1 for i in range(nb_ech_per_symbole)]
         elif symb_amplitude <= 2.5**2:
             received_message.append([0, 1])
-            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [2 for i in range(nb_ech_per_symbole)]
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
+                2 for i in range(nb_ech_per_symbole)]
         elif symb_amplitude <= 3.5**2:
             received_message.append([1, 0])
-            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [3 for i in range(nb_ech_per_symbole)]
-        else :
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
+                3 for i in range(nb_ech_per_symbole)]
+        else:
             received_message.append([1, 1])
-            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [4 for i in range(nb_ech_per_symbole)]
-    
-    return received_message, received_amplitude
+            received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
+                4 for i in range(nb_ech_per_symbole)]
 
+    return received_message, received_amplitude
 
 
 def main():
@@ -70,13 +78,14 @@ def main():
     message = generate_random_sequence(20)
     encoded_message = crc_encoding(message)
     porteuse, modulant, signal_module = ask_modulate(encoded_message)
-    plt.subplot(3,1,1)
+    plt.subplot(3, 1, 1)
     plt.plot(time_fech, porteuse)
-    plt.subplot(3,1,2)
+    plt.subplot(3, 1, 2)
     plt.plot(time_fech, modulant)
-    plt.subplot(3,1,3)
+    plt.subplot(3, 1, 3)
     plt.plot(time_fech, signal_module)
     plt.show()
+
 
 if __name__ == '__main__':
     main()
