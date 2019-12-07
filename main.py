@@ -1,3 +1,5 @@
+#Simulation du canal
+
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -7,16 +9,16 @@ from src.sequence import generate_random_sequence
 from src.canal import gaussian_noise, awgn
 from src.viterbi import viterbi
 
-#Frequences en Hz
+#Frequences en Hz (modifiable)
 f_porteuse = 100.
 f_symboles = 40.
 f_ech = 8*f_porteuse
 
-#SNR en dB
+#SNR en dB (modifiable)
 gammadB = 15
 
-#Nombre de bits dans le message transmis
-nb_symboles = 50
+#Nombre de bits dans le message transmis (modifiable)
+nb_symboles = 200
 
 #Nombre de points d'echantillonnage
 nb_points = int(nb_symboles*f_ech/f_symboles)
@@ -26,7 +28,6 @@ nb_ech_per_symbole = int(f_ech/f_symboles)
 #temps
 time_fech = np.arange(0, nb_symboles/f_symboles, 1/f_ech)
 
-#Debut du script
 #Generation du message a envoyer
 message = generate_random_sequence(nb_symboles)
 
@@ -38,10 +39,13 @@ porteuse, modulant, signal_module = ask_modulate(
     encoded_message, nb_symboles, f_porteuse, f_symboles, f_ech)
 
 
-#Calcul de l'energie par bits
+#Calcul de l'energie par bits du signal
 Eb = sum([signal_module[i]**2 for i in range(len(signal_module))])/nb_symboles
 
+#Calcul de la puissance du bruit
 N0 = Eb/(10**(gammadB/10))
+
+#Calcul de l'ecart type du bruit
 sigma = np.sqrt(N0/2)
 
 #Le signal passe dans le canal
@@ -68,20 +72,20 @@ print("Nombre d'erreurs :", nb_errors)
 print("Taux d'erreur symbole pour RSB =", gammadB, "dB : ", TES)
 print("Taux d'erreur binaire pour RSB =", gammadB, "dB : ", TEB)
 
-message_print = []
-decoded_message_print = []
+message_plot = []
+decoded_message_plot = []
 
 for i in range(nb_symboles):
-    message_print[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [message[i]
+    message_plot[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [message[i]
                                                                     for j in range(nb_ech_per_symbole)]
-    decoded_message_print[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
+    decoded_message_plot[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [
         decoded_message[i] for j in range(nb_ech_per_symbole)]
 
-#Figures : porteuse, message encode, signal module
+#Figures : message initial, message code, signal module, signal bruite, message code recu (signal demodule), message decode
 
 plt.figure("SNR = " + str(gammadB) + "dB; " + "TEB = " + str(TEB))
 plt.subplot(3,2,1)
-plt.plot(time_fech, message_print)
+plt.plot(time_fech, message_plot)
 plt.xlabel("Temps (s)")
 plt.ylabel("Etat")
 plt.title("Information transmise")
@@ -111,7 +115,7 @@ plt.ylabel("Etat")
 plt.title("Message codé reçu")
 
 plt.subplot(3,2,6)
-plt.plot(time_fech, decoded_message_print)
+plt.plot(time_fech, decoded_message_plot)
 plt.xlabel("Temps (s)")
 plt.ylabel("Etat")
 plt.title("Information reçue (décodée)")
