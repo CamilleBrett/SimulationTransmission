@@ -23,16 +23,19 @@ class Path:
     """Chemin sur le treillis : il est constitue de differents objets Wire"""
 
     def __init__(self, first_wire):
-        self.weight = 0 #poids total du chemin
-        self.wires = [first_wire] #initialisation de la liste des portions de chemin constituant le chemin
-        self.last_state = first_wire.vert2 #point d'arrivee du chemin
+        self.weight = 0  # poids total du chemin
+        # initialisation de la liste des portions de chemin constituant le chemin
+        self.wires = [first_wire]
+        self.last_state = first_wire.vert2  # point d'arrivee du chemin
 
     def add_wire(self, wire):
+        """Ajoute une portion de chemin au chemin"""
         self.wires.append(wire)
         self.last_state = wire.vert2
         self.weight += wire.weight
 
     def print_path(self):
+        """Methode print du path : on affiche dans la console tous les sommets du chemin, dans l'odre"""
         vertices = []
         for wire in self.wires:
             vertices.append(wire.vert1)
@@ -41,6 +44,7 @@ class Path:
 
 
 def copy_path(path):
+    """Permet de dupliquer un chemin (si a partir d'un sommet on a deux chemins possibles)"""
     new_path = Path(path.wires[0])
     for wire in path.wires[1:]:
         new_path.add_wire(wire)
@@ -49,15 +53,22 @@ def copy_path(path):
 
 
 def branches(current_state, real_output):
-    output0, new_state0 = crc(0, current_state)
-    output1, new_state1 = crc(1, current_state)
+    """A partir de l'etat des registres current_state, on determine les deux etats suivants et sorties possibles"""
+    output0, new_state0 = crc(0, current_state)  # possibilite 1 : input = 0
+    output1, new_state1 = crc(1, current_state)  # possibilite 2 : input = 1
     wire0 = Wire(current_state, new_state0, 0, output0, real_output)
     wire1 = Wire(current_state, new_state1, 1, output1, real_output)
     return wire0, wire1
 
 
 def viterbi(message):
-    # initialisation du graphe : premieres branches
+    """
+    On execute l'algorithme de Viterbi sur notre message recu
+    On construit le treillis au fur et a mesure et on calcule le poids cumule de chaque chemin possible
+    Si deux chemins arrivent au meme etat, on supprime le chemin le plus court
+    A la fin du treillis, parmi les chemins survivants, on choisit le chemin au poids le plus faible
+    C'est celui qui maximise la vraissemblance
+    """
     paths = []
     decoded_message = []
     min_weight = len(message)*2
@@ -66,12 +77,13 @@ def viterbi(message):
         new_paths = []
         critical_paths = []
 
-        if init == 1:
+        if init == 1:  # si c'est le debut du treillis, alors les registres sont a l'etat 0
             wire0, wire1 = branches([0, 0], i)
             paths.append(Path(wire0))
             paths.append(Path(wire1))
             init = 0
         else:
+            # pour chaque chemin du treillis, on determine les deux suites posibles
             for p in range(len(paths)):
                 wire0, wire1 = branches(paths[p].last_state, i)
                 new_path = copy_path(paths[p])
@@ -80,6 +92,7 @@ def viterbi(message):
                 new_paths.append(new_path)
             paths.extend(new_paths)
 
+        # on determine les chemins critiques (ceux de poids les plus importants)
         for p in range(len(paths)):
             for q in range(p+1, len(paths)):
                 if paths[p].last_state == paths[q].last_state:
@@ -87,21 +100,21 @@ def viterbi(message):
                         critical_paths.append(p)
                     else:
                         critical_paths.append(q)
+        # on elimine les chemins critiques pour ne garder que les chemins survivants
         for j in range(len(critical_paths)):
             paths.pop(critical_paths[j]-j)
 
-    # Comparing weights
     for p in paths:
-        if p.weight <= min_weight:
+        if p.weight <= min_weight:  # on compare les poids de chaque chemin survivant
             min_weight = p.weight
             best_path = p
-    for wire in best_path.wires:
-        # Determining message
+    for wire in best_path.wires:  # on decode le meilleur chemin : le message est l'entree de chaque portion du meilleur chemin
         decoded_message.append(wire.input)
     return decoded_message
 
 
 def main():
+    """on teste si tout fonctionne"""
     message = generate_random_sequence(10)
     coded_message = crc_encoding(message)
     decoded_message = viterbi(coded_message)
