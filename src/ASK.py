@@ -4,44 +4,50 @@ import matplotlib.pyplot as plt
 from .CRC import crc_encoding
 from .sequence import generate_random_sequence
 
-def TRMS(signal):
+def sq_TRMS(signal):
+    """Calcule le carre de la valeur efficace d'un signal"""
     return sum([signal[i]**2 for i in range(len(signal))])/len(signal)
 
 def ask_modulate(message, nb_symboles, f_porteuse, f_symboles, f_ech):
-    #f_porteuse = 100.0 #Hz
-    #f_symboles = 40.0 #Hz
-    #f_ech = f_porteuse*8
+    """Modulation de l'information sur une porteuse de frequence f_porteuse, modulation a 4 etats
+    A l'etat 0 on associe une amplitude 1
+    A l'etat 1 on associe une amplitude 2
+    A l'etat 2 on associe une amplitude 3
+    A l'etat 3 on associe une amplitude 4
+    On renvoie le signal module echantillonne a une frequence f_ech
+    """
     time_fech = np.arange(0, nb_symboles/f_symboles, 1/f_ech)
-    porteuse = np.sin(2*np.pi*f_porteuse*time_fech)
+    porteuse = np.sin(2*np.pi*f_porteuse*time_fech) #on cree notre signal porteuse
     modulant = np.zeros(int(nb_symboles/f_symboles*f_ech))
     for i in range(len(message)):
-        if message[i] == [0, 0]:
+        if message[i] == [0, 0]: #etat 0
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 1.
-        elif message[i] == [0, 1]:
+        elif message[i] == [0, 1]: #etat 1
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 2.
-        elif message[i] == [1, 0]:
+        elif message[i] == [1, 0]: #etat 2
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 3.
-        elif message[i] == [1, 1]:
+        elif message[i] == [1, 1]: #etat 3
             for j in range(i*int(f_ech/f_symboles), (i+1)*int(f_ech/f_symboles)):
                 modulant[j] = 4.
     signal_module = [porteuse[i] * modulant[i] for i in range(len(porteuse))]
-
-
-
-
     return porteuse, modulant, signal_module
+
 
 def ask_demodulate(noisy_signal, nb_symboles, nb_ech_per_symbole):
     """
-    Pour la decision on va etudier la TRMS du signal bruite sur un intervalle de temps t_symboles
+    Demodule le signal ASK
+    Pour chaque symbole module (portion de noisy_signal de duree t_symbole), 
+    on etudie une approximation de l'amplitude a partir de la valeur efficace
+    (pour un signal sinusoidal Veff = Amplitude/sqrt(2))
+    On compare cette amplitude a 3 seuils pour prendre notre decision
     """
     received_amplitude = []
     received_message = []
     for i in range(nb_symboles):
-        symb_amplitude = 2*TRMS(noisy_signal[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole])
+        symb_amplitude = 2*sq_TRMS(noisy_signal[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole])
         if symb_amplitude <= 1.5**2:
             received_message.append([0, 0])
             received_amplitude[i*nb_ech_per_symbole:(i+1)*nb_ech_per_symbole] = [1 for i in range(nb_ech_per_symbole)]
@@ -60,6 +66,7 @@ def ask_demodulate(noisy_signal, nb_symboles, nb_ech_per_symbole):
 
 
 def main():
+    """test pour voir si tout fonctionne"""
     message = generate_random_sequence(20)
     encoded_message = crc_encoding(message)
     porteuse, modulant, signal_module = ask_modulate(encoded_message)
