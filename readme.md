@@ -27,7 +27,7 @@ Pour simuler la transmission, exécuter le code `main.py`.
 	* Le taux d'erreur symbole au RSB choisi;
 	* Le taux d'erreur binaire au RSB choisi;
 
-* Dans une fenètre, on affiche les figures suivantes :
+* Dans une fenêtre, on affiche les figures suivantes :
 	* Le message à transmettre;
 	* Le message encodé;
 	* Le signal modulé;
